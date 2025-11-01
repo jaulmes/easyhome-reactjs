@@ -1,21 +1,4 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-import { useState, useEffect, useMemo } from "react";
-
-// react-router components
+import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 // @mui material components
@@ -32,16 +15,7 @@ import Configurator from "examples/Configurator";
 
 // Material Dashboard 2 React themes
 import theme from "assets/theme";
-import themeRTL from "assets/theme/theme-rtl";
-
-// Material Dashboard 2 React Dark Mode themes
 import themeDark from "assets/theme-dark";
-import themeDarkRTL from "assets/theme-dark/theme-rtl";
-
-// RTL plugins
-import rtlPlugin from "stylis-plugin-rtl";
-import { CacheProvider } from "@emotion/react";
-import createCache from "@emotion/cache";
 
 // Material Dashboard 2 React routes
 import routes from "routes";
@@ -53,11 +27,22 @@ import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "co
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 
+// --- Imports personnalisés ---
+import Login from "components/login"; // Votre composant de connexion
+import PrivateRoute from "components/privateRoute"; // Votre composant de route privée
+
+// --- Imports RTL supprimés ---
+// import themeRTL from "assets/theme/theme-rtl"; // Supprimé
+// import themeDarkRTL from "assets/theme-dark/theme-rtl"; // Supprimé
+// import rtlPlugin from "stylis-plugin-rtl"; // Supprimé
+// import { CacheProvider } from "@emotion/react"; // Supprimé
+// import createCache from "@emotion/cache"; // Supprimé
+
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
   const {
     miniSidenav,
-    direction,
+    // direction, // Supprimé, car forcé en LTR
     layout,
     openConfigurator,
     sidenavColor,
@@ -66,18 +51,14 @@ export default function App() {
     darkMode,
   } = controller;
   const [onMouseEnter, setOnMouseEnter] = useState(false);
-  const [rtlCache, setRtlCache] = useState(null);
+  // const [rtlCache, setRtlCache] = useState(null); // Supprimé
   const { pathname } = useLocation();
 
-  // Cache for the rtl
-  useMemo(() => {
-    const cacheRtl = createCache({
-      key: "rtl",
-      stylisPlugins: [rtlPlugin],
-    });
+  // Vérifie si on est sur la page de login
+  const isLoginPage = pathname === "/";
 
-    setRtlCache(cacheRtl);
-  }, []);
+  // --- Cache RTL supprimé ---
+  // useMemo(() => { ... }, []);
 
   // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {
@@ -95,15 +76,16 @@ export default function App() {
     }
   };
 
-  // Change the openConfigurator state
+  // Handle the configurator function
   const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
 
-  // Setting the dir attribute for the body element
+  // Setting the dir attribute for the body
   useEffect(() => {
-    document.body.setAttribute("dir", direction);
-  }, [direction]);
+    // Force la direction LTR (gauche à droite) en permanence
+    document.body.setAttribute("dir", "ltr");
+  }, []); // Ne s'exécute qu'une fois
 
-  // Setting page scroll to 0 when changing the route
+  // Scroll to top when route changes
   useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
@@ -146,40 +128,21 @@ export default function App() {
     </MDBox>
   );
 
-  return direction === "rtl" ? (
-    <CacheProvider value={rtlCache}>
-      <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
-        <CssBaseline />
-        {layout === "dashboard" && (
-          <>
-            <Sidenav
-              color={sidenavColor}
-              brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-              brandName="Material Dashboard 2"
-              routes={routes}
-              onMouseEnter={handleOnMouseEnter}
-              onMouseLeave={handleOnMouseLeave}
-            />
-            <Configurator />
-            {configsButton}
-          </>
-        )}
-        {layout === "vr" && <Configurator />}
-        <Routes>
-          {getRoutes(routes)}
-          <Route path="*" element={<Navigate to="/dashboard" />} />
-        </Routes>
-      </ThemeProvider>
-    </CacheProvider>
-  ) : (
-    <ThemeProvider theme={darkMode ? themeDark : theme}>
+  // Thème simplifié : choisit uniquement entre dark et light (le RTL est supprimé)
+  const themeUsed = darkMode ? themeDark : theme;
+
+  // Le CacheProvider a été retiré
+  return (
+    <ThemeProvider theme={themeUsed}>
       <CssBaseline />
-      {layout === "dashboard" && (
+
+      {/* Si ce n’est pas la page de login, on affiche le layout complet */}
+      {!isLoginPage && layout === "dashboard" && (
         <>
           <Sidenav
             color={sidenavColor}
             brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-            brandName="Material Dashboard 2"
+            brandName="Dashboard"
             routes={routes}
             onMouseEnter={handleOnMouseEnter}
             onMouseLeave={handleOnMouseLeave}
@@ -188,10 +151,30 @@ export default function App() {
           {configsButton}
         </>
       )}
-      {layout === "vr" && <Configurator />}
+
+      {/* Définition des routes */}
       <Routes>
-        {getRoutes(routes)}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
+        {/* Page de login = page d’accueil */}
+        <Route path="/" element={<Login />} />
+
+        {/* Routes protégées */}
+        <Route
+          path="/*"
+          element={
+            <PrivateRoute>
+              {/* Le layout (Sidenav, etc.) est géré au-dessus */}
+              <Routes>
+                {getRoutes(routes)}
+                {/* Redirection par défaut pour les routes protégées */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </PrivateRoute>
+          }
+        />
+
+        {/* Redirection par défaut (si aucune route ne correspond) */}
+        {/* Note: Cette route est peut-être redondante avec la gestion de PrivateRoute */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ThemeProvider>
   );
