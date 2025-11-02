@@ -11,8 +11,9 @@ import {
   CircularProgress,
 } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
-import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
-import { auth, googleProvider } from "../firebase";
+import { signInWithPopup, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, googleProvider, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -25,8 +26,27 @@ export default function Login() {
   // Connexion avec Google
   const handleGoogleLogin = async () => {
     try {
+      //verifier si l'utilisateur est déjà connecté
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
       setLoading(true);
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
+
+      // Si le user n'existe pas encore, on l'ajoute
+      if (!docSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          createdAt: new Date(),
+        });
+      }
       navigate("/dashboard"); // redirige après connexion
     } catch (err) {
       setError("Erreur de connexion Google !");

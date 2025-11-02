@@ -30,13 +30,7 @@ import brandDark from "assets/images/logo-ct-dark.png";
 // --- Imports personnalisés ---
 import Login from "components/login"; // Votre composant de connexion
 import PrivateRoute from "components/privateRoute"; // Votre composant de route privée
-
-// --- Imports RTL supprimés ---
-// import themeRTL from "assets/theme/theme-rtl"; // Supprimé
-// import themeDarkRTL from "assets/theme-dark/theme-rtl"; // Supprimé
-// import rtlPlugin from "stylis-plugin-rtl"; // Supprimé
-// import { CacheProvider } from "@emotion/react"; // Supprimé
-// import createCache from "@emotion/cache"; // Supprimé
+import Register from "components/register";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -51,14 +45,11 @@ export default function App() {
     darkMode,
   } = controller;
   const [onMouseEnter, setOnMouseEnter] = useState(false);
-  // const [rtlCache, setRtlCache] = useState(null); // Supprimé
   const { pathname } = useLocation();
 
   // Vérifie si on est sur la page de login
   const isLoginPage = pathname === "/";
-
-  // --- Cache RTL supprimé ---
-  // useMemo(() => { ... }, []);
+  const isRegisterPage = pathname === "/register";
 
   // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {
@@ -137,7 +128,7 @@ export default function App() {
       <CssBaseline />
 
       {/* Si ce n’est pas la page de login, on affiche le layout complet */}
-      {!isLoginPage && layout === "dashboard" && (
+      {!isLoginPage && !isRegisterPage && layout === "dashboard" && (
         <>
           <Sidenav
             color={sidenavColor}
@@ -156,6 +147,7 @@ export default function App() {
       <Routes>
         {/* Page de login = page d’accueil */}
         <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Routes protégées */}
         <Route

@@ -46,6 +46,7 @@ import {
   setTransparentSidenav,
   setWhiteSidenav,
 } from "context";
+import SignOutButton from "components/signOutButton";
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const [controller, dispatch] = useMaterialUIController();
@@ -180,17 +181,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
       />
       <List>{renderRoutes}</List>
       <MDBox p={2} mt="auto">
-        <MDButton
-          component="a"
-          href="https://www.creative-tim.com/product/material-dashboard-pro-react"
-          target="_blank"
-          rel="noreferrer"
-          variant="gradient"
-          color={sidenavColor}
-          fullWidth
-        >
-          upgrade to pro
-        </MDButton>
+        <SignOutButton />
       </MDBox>
     </SidenavRoot>
   );
